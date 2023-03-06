@@ -1,0 +1,22 @@
+{
+    "name": "LionextExample.Coroutines.Runtime",
+    "rootNamespace": "LionextExample.Coroutines",
+    "references": [
+        "GUID:3246fcd074a7a4d4a80edbb4a0d29646"
+    ],
+    "includePlatforms": [
+        "Android",
+        "Editor",
+        "iOS",
+        "WindowsStandalone32",
+        "WindowsStandalone64"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
