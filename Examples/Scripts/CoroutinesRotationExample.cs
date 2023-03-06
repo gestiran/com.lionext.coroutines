@@ -16,10 +16,10 @@ namespace LionextExample.Coroutines {
         private CoroutineSimple[] _rotations;
         
         private void Start() {
-            _rotations = CoroutinesUtility.StartRoutine(RotateUP(), RotateLeft());
+            //_rotations = CoroutinesUtility.StartCoroutine(RotateUP(), RotateLeft());
 
-            WhenAllTest().StartAsCoroutine();
-            WhenAnyTest().StartAsCoroutine();
+            CoroutinesUtility.StartObjectCoroutine(this, Print("Obj"));
+            CoroutinesUtility.StartGlobalCoroutine( Print("All"));
         }
 
         private void Update() {
@@ -30,8 +30,19 @@ namespace LionextExample.Coroutines {
             if (Input.GetKeyDown(KeyCode.C)) {
                 _rotations.Resume();
             }
+
+            if (Input.GetKeyDown(KeyCode.G)) {
+                Destroy(gameObject);
+            }
         }
 
+        private IEnumerator Print(string data) {
+            while (Application.isPlaying) {
+                yield return new WaitRealtime(1f);
+                Debug.LogError(data);
+            }
+        }
+        
         private IEnumerator RotateUP() {
             for (int i = 0; i < _framesCount; i++) {
                 _targetTransform.Rotate(Vector3.up, _rotationSpeed * Time.deltaTime);
