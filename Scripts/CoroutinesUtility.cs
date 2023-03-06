@@ -56,7 +56,7 @@
 
             private static void UpdateRoutines() {
                 for (int routineId = _routines.Count - 1; routineId >= 0; routineId--) {
-                    if (_routines[routineId].TryUpdate()) continue;
+                    if (_routines[routineId].UpdateState()) continue;
                     StopRoutine(_routines[routineId]);
                     _routines.RemoveAt(routineId);
                 }

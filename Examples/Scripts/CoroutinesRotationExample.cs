@@ -10,19 +10,16 @@ namespace LionextExample.Coroutines {
         [SerializeField] private Transform _targetTransform;
 
         [Header("Parameters")]
-        [SerializeField] private int _count;
         [SerializeField] private int _framesCount;
         [SerializeField] private float _rotationSpeed;
 
         private CoroutineSimple[] _rotations;
         
         private void Start() {
-            _rotations = new CoroutineSimple[_count];
-            
-            for (int i = 0; i < _count; i++) {
-                _rotations[i] = Test().StartAsRoutine();
-            }
-            //_rotations = RoutineRunner.StartRoutine(RotateUP(), RotateLeft());
+            _rotations = CoroutinesUtility.StartRoutine(RotateUP(), RotateLeft());
+
+            WhenAllTest().StartAsCoroutine();
+            WhenAnyTest().StartAsCoroutine();
         }
 
         private void Update() {
@@ -35,20 +32,14 @@ namespace LionextExample.Coroutines {
             }
         }
 
-        private IEnumerator Test() {
-            WaitForEndOfFrame frame = new WaitForEndOfFrame();
-            
-            while (Application.isPlaying) {
-                yield return frame;
-            }
-        }
-
         private IEnumerator RotateUP() {
             for (int i = 0; i < _framesCount; i++) {
                 _targetTransform.Rotate(Vector3.up, _rotationSpeed * Time.deltaTime);
 
                 yield return new WaitForEndOfFrame();
             }
+            
+            Debug.LogError("RotateLeft - Complete");
         }
         
         private IEnumerator RotateLeft() {
@@ -57,11 +48,18 @@ namespace LionextExample.Coroutines {
 
                 yield return new WaitForEndOfFrame();
             }
+            
+            Debug.LogError("RotateLeft - Complete");
         }
 
-        private IEnumerator Wait() {
+        private IEnumerator WhenAllTest() {
             yield return new WhenAll(_rotations);
-            Debug.LogError("Complete");
+            Debug.LogError("WhenAllTest - Complete");
+        }
+        
+        private IEnumerator WhenAnyTest() {
+            yield return new WhenAny(_rotations);
+            Debug.LogError("WhenAnyTest - Complete");
         }
     }
 }

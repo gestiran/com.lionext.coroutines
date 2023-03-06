@@ -4,21 +4,22 @@ namespace Lionext.Coroutines.YieldInstructions {
     public class WhenAny : IEnumerator {
         public object Current => null;
         
-        private bool _isEnd;
-        private readonly CoroutineSimple[] _routines;
+        private bool _isComplete;
+        private readonly CoroutineSimple[] _coroutines;
 
-        public WhenAny(params CoroutineSimple[] routines) => _routines = routines;
+        public WhenAny(params CoroutineSimple[] coroutines) => _coroutines = coroutines;
 
         public bool MoveNext() {
-            if (_isEnd) return false;
+            if (_isComplete) return false;
             
-            // for (int routineId = 0; routineId < _routines.Length; routineId++) {
-            //     if (!_routines[routineId].isRunning) return false;
-            // }
+            for (int coroutineId = 0; coroutineId < _coroutines.Length; coroutineId++) {
+                if (!_coroutines[coroutineId].isComplete) continue; 
+                return false;
+            }
             
             return true;
         }
 
-        public void Reset() => _isEnd = true;
+        public void Reset() => _isComplete = true;
     }
 }
