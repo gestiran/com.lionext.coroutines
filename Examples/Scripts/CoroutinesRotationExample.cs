@@ -16,13 +16,7 @@ namespace LionextExample.Coroutines {
         private CoroutineSimple[] _rotations;
         
         private void Start() {
-            //_rotations = CoroutinesUtility.StartCoroutine(RotateUP(), RotateLeft());
-
-            //CoroutinesUtility.StartObjectCoroutine(this, Print("Obj"));
-            //CoroutinesUtility.StartGlobalCoroutine( Print("All"));
-
-
-            CoroutinesUtility.StartObjectCoroutine(this, Animation(RotateUP(), RotateLeft()));
+            CoroutinesUtility.StartObject(this, Animation(RotateUP(), RotateLeft()));
         }
 
         private void Update() {
@@ -50,7 +44,7 @@ namespace LionextExample.Coroutines {
             while (Application.isPlaying) {
 
                 for (int i = 0; i < simple.Length; i++) {
-                    yield return CoroutinesUtility.StartGlobalCoroutine(simple[i]);
+                    yield return CoroutinesUtility.StartGlobal(simple[i]);
                 }
                 Debug.LogError(0);
             }

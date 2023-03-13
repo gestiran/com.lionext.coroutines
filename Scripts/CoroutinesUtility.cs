@@ -1,141 +1,80 @@
 ﻿    using System.Collections;
-    using System.Collections.Generic;
     using Lionext.Coroutines.Handles;
     using UnityEngine;
-    using UnityEngine.LowLevel;
 
     namespace Lionext.Coroutines {
         public static class CoroutinesUtility {
-            private static readonly CoroutineHandle _handle;
-            private static readonly List<CoroutineSimple> _coroutines;
+            private static readonly CoroutinesHandle _handle;
             
             static CoroutinesUtility() {
-                _handle = new CoroutineHandle();
-                _coroutines = new List<CoroutineSimple>();
-                ConnectToLoop();
-
+                _handle = new CoroutinesHandle();
+                _handle.ConnectToLoop();
             #if UNITY_EDITOR
                 Application.quitting += OnQuit;
             #endif
             }
-            
-            // Need separate to scene routines and global routines
-            // Need editor realisation
 
-            public static CoroutineSimple[] StartGlobalCoroutine(params IEnumerator[] enumerators) {
+            public static CoroutineSimple[] StartGlobal(params IEnumerator[] enumerators) {
                 CoroutineSimple[] result = new CoroutineSimple[enumerators.Length];
 
                 for (int enumeratorId = 0; enumeratorId < enumerators.Length; enumeratorId++) {
-                    result[enumeratorId] = StartGlobalCoroutine(enumerators[enumeratorId]);
+                    result[enumeratorId] = _handle.StartGlobal(enumerators[enumeratorId]);
                 }
                 
                 return result;
             }
 
-            public static CoroutineSimple StartGlobalCoroutine(IEnumerator enumerator) {
-                CoroutineSimple coroutine = new CoroutineSimple(enumerator, _handle.Running);
-                _coroutines.Add(coroutine);
-                return coroutine;
+            public static CoroutineSimple StartGlobal(IEnumerator enumerator) {
+                return _handle.StartGlobal(enumerator);
             }
 
-            public static CoroutineSimple[] StartObjectCoroutine<T>(T root, params IEnumerator[] enumerators) where T : MonoBehaviour {
+            public static CoroutineSimple[] StartObject<T>(T root, params IEnumerator[] enumerators) where T : MonoBehaviour {
                 CoroutineSimple[] result = new CoroutineSimple[enumerators.Length];
-                
+
                 for (int enumeratorId = 0; enumeratorId < enumerators.Length; enumeratorId++) {
-                    result[enumeratorId] = StartObjectCoroutine(root, enumerators[enumeratorId]);
+                    result[enumeratorId] = _handle.StartObject(root, enumerators[enumeratorId]);
                 }
-                
+
                 return result;
             }
 
-            public static CoroutineSimple StartObjectCoroutine<T>(T root, IEnumerator enumerator) where T : MonoBehaviour {
-                CoroutineSimple coroutine = StartGlobalCoroutine(enumerator);
-                StartGlobalCoroutine(MonoObserver(root, coroutine));
-                return coroutine;
+            public static CoroutineSimple StartObject<T>(T root, IEnumerator enumerator) where T : MonoBehaviour {
+                return _handle.StartObject(root, enumerator);
+            }
+            
+            public static void StopAll() => _handle.StopAll();
+
+            public static void Stop(params CoroutineSimple[] coroutines) {
+                for (int coroutineId = 0; coroutineId < coroutines.Length; coroutineId++) {
+                    _handle.Stop(coroutines[coroutineId]);
+                }
             }
 
-            private static IEnumerator MonoObserver<T>(T observed, CoroutineSimple coroutine) where T : MonoBehaviour {
-                while (coroutine.isComplete || observed != null) yield return null;
-                StopCoroutine(coroutine);
-            }
-            
-            public static void StopAll() => StopCoroutine(_coroutines.ToArray());
-            
-            public static void StopCoroutine<T>(params T[] coroutines) where T : CoroutineSimple {
-                for (int coroutineId = 0; coroutineId < coroutines.Length; coroutineId++) StopCoroutine(coroutines[coroutineId]);
-            }
-            
-            public static void StopCoroutine<T>(T coroutine) where T : CoroutineSimple => coroutine.ChangeState(_handle.Stopped);
-            
+            public static void Stop(CoroutineSimple coroutine) => _handle.Stop(coroutine);
+
             public static void Pause(params CoroutineSimple[] coroutines) {
-                for (int coroutineId = 0; coroutineId < _coroutines.Count; coroutineId++) Pause(coroutines[coroutineId]);
+                for (int coroutineId = 0; coroutineId < coroutines.Length; coroutineId++) {
+                    _handle.Pause(coroutines[coroutineId]);
+                }
             }
-            
-            public static void Pause(CoroutineSimple routine) => routine.ChangeState(_handle.Pause);
+
+            public static void Pause(CoroutineSimple coroutine) => _handle.Pause(coroutine);
 
             public static void Resume(params CoroutineSimple[] coroutines) {
-                for (int coroutineId = 0; coroutineId < coroutines.Length; coroutineId++) _coroutines[coroutineId].ChangeState(_handle.Running);
-            }
-
-            private static void Update() => UpdateRoutines();
-
-            private static void UpdateRoutines() {
-                for (int coroutineId = _coroutines.Count - 1; coroutineId >= 0; coroutineId--) {
-                    if (_coroutines[coroutineId].MoveNext()) continue;
-                    StopCoroutine(_coroutines[coroutineId]);
-                    _coroutines.RemoveAt(coroutineId);
+                for (int coroutineId = 0; coroutineId < coroutines.Length; coroutineId++) {
+                    _handle.Resume(coroutines[coroutineId]);
                 }
             }
 
-            private static void ConnectToLoop() {
-                PlayerLoopSystem currentLoop = PlayerLoop.GetCurrentPlayerLoop();
-                PlayerLoopSystem[] currentSystems = currentLoop.subSystemList;
-
-                PlayerLoopSystem[] newSystems = new PlayerLoopSystem[currentSystems.Length + 1];
-
-                for (int systemId = 0; systemId < currentSystems.Length; systemId++) newSystems[systemId] = currentSystems[systemId];
-
-                newSystems[currentSystems.Length] = CreateCurrentSystem();
-
-                currentLoop.subSystemList = newSystems;
-                PlayerLoop.SetPlayerLoop(currentLoop);
-            }
+            public static void Resume(CoroutineSimple coroutine) => _handle.Resume(coroutine);
 
         #if UNITY_EDITOR
             
             private static void OnQuit() {
-                StopAll();
-                DisconnectFromLoop();
-            }
-            
-            private static void DisconnectFromLoop() {
-                PlayerLoopSystem currentLoop = PlayerLoop.GetCurrentPlayerLoop();
-                PlayerLoopSystem[] currentSystems = currentLoop.subSystemList;
-
-                PlayerLoopSystem[] newSystems = new PlayerLoopSystem[currentSystems.Length - 1];
-
-                for (int newSystemId = 0, systemId = 0; newSystemId < newSystems.Length; newSystemId++, systemId++) {
-                    if (currentSystems[systemId].type == typeof(PlayerLoopSystem)) {
-                        systemId++;
-                        continue;
-                    }
-
-                    newSystems[newSystemId] = currentSystems[systemId];
-                }
-                
-                currentLoop.subSystemList = newSystems;
-                PlayerLoop.SetPlayerLoop(currentLoop);
+                _handle.StopAll();
+                _handle.DisconnectFromLoop();
             }
             
         #endif
-
-            private static PlayerLoopSystem CreateCurrentSystem() {
-                PlayerLoopSystem system = new PlayerLoopSystem();
-
-                system.type = typeof(PlayerLoopSystem);
-                system.updateDelegate = Update;
-
-                return system;
-            }
         }
     }
