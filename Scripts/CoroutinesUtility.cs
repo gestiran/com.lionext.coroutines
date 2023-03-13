@@ -8,7 +8,6 @@
             
             static CoroutinesUtility() {
                 _handle = new CoroutinesHandle();
-                _handle.ConnectToLoop();
             }
 
             public static CoroutineSimple[] StartGlobal(params IEnumerator[] enumerators) {

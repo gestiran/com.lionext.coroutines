@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Lionext.GameLoop;
 using UnityEngine;
 using UnityEngine.LowLevel;
+using UnityEngine.PlayerLoop;
 
 namespace Lionext.Coroutines.Handles {
     public class CoroutinesHandle {
@@ -11,8 +12,7 @@ namespace Lionext.Coroutines.Handles {
 
         public CoroutinesHandle() {
             _coroutines = new List<CoroutineSimple>();
-            _updateSystem = GameLoopUtility.CreateSystem<CoroutinesHandle>(UpdateRoutines);
-            ConnectToLoop();
+            GameLoopUtility.TryAddLoop<Update>(GameLoopUtility.CreateSystem<CoroutinesHandle>(UpdateRoutines));
         }
         
         public CoroutineSimple StartGlobal(IEnumerator enumerator) {
@@ -46,11 +46,7 @@ namespace Lionext.Coroutines.Handles {
                 _coroutines.RemoveAt(coroutineId);
             }
         }
-
-        public void ConnectToLoop() => GameLoopUtility.AddLoop(_updateSystem);
-
-        public void DisconnectFromLoop() => GameLoopUtility.RemoveLoop(_updateSystem);
-
+        
         private bool RunningUpdate(CoroutineSimple coroutine) {
             if (!coroutine.MoveNextCurrent()) {
                 if (coroutine.isEmptyStack) {
