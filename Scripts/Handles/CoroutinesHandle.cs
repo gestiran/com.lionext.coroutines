@@ -1,14 +1,17 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using Lionext.GameLoop;
 using UnityEngine;
 using UnityEngine.LowLevel;
 
 namespace Lionext.Coroutines.Handles {
     public class CoroutinesHandle {
         private readonly List<CoroutineSimple> _coroutines;
+        private readonly PlayerLoopSystem _updateSystem;
 
         public CoroutinesHandle() {
             _coroutines = new List<CoroutineSimple>();
+            _updateSystem = CreateCurrentSystem();
             ConnectToLoop();
         }
         
@@ -44,39 +47,9 @@ namespace Lionext.Coroutines.Handles {
             }
         }
 
-        public void ConnectToLoop() {
-            PlayerLoopSystem currentLoop = PlayerLoop.GetCurrentPlayerLoop();
-            PlayerLoopSystem[] currentSystems = currentLoop.subSystemList;
+        public void ConnectToLoop() => GameLoopUtility.ConnectToLoop(_updateSystem);
 
-            PlayerLoopSystem[] newSystems = new PlayerLoopSystem[currentSystems.Length + 1];
-
-            for (int systemId = 0; systemId < currentSystems.Length; systemId++) newSystems[systemId] = currentSystems[systemId];
-
-            newSystems[currentSystems.Length] = CreateCurrentSystem();
-
-            currentLoop.subSystemList = newSystems;
-            PlayerLoop.SetPlayerLoop(currentLoop);
-        }
-
-        public void DisconnectFromLoop() {
-            PlayerLoopSystem currentLoop = PlayerLoop.GetCurrentPlayerLoop();
-            PlayerLoopSystem[] currentSystems = currentLoop.subSystemList;
-
-            PlayerLoopSystem[] newSystems = new PlayerLoopSystem[currentSystems.Length - 1];
-
-            for (int newSystemId = 0, systemId = 0; newSystemId < newSystems.Length; newSystemId++, systemId++) {
-                if (currentSystems[systemId].type == typeof(PlayerLoopSystem)) {
-                    systemId++;
-
-                    continue;
-                }
-
-                newSystems[newSystemId] = currentSystems[systemId];
-            }
-
-            currentLoop.subSystemList = newSystems;
-            PlayerLoop.SetPlayerLoop(currentLoop);
-        }
+        public void DisconnectFromLoop() => GameLoopUtility.DisconnectFromLoop(_updateSystem);
 
         private PlayerLoopSystem CreateCurrentSystem() {
             PlayerLoopSystem system = new PlayerLoopSystem();

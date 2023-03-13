@@ -9,9 +9,6 @@
             static CoroutinesUtility() {
                 _handle = new CoroutinesHandle();
                 _handle.ConnectToLoop();
-            #if UNITY_EDITOR
-                Application.quitting += OnQuit;
-            #endif
             }
 
             public static CoroutineSimple[] StartGlobal(params IEnumerator[] enumerators) {
@@ -67,14 +64,5 @@
             }
 
             public static void Resume(CoroutineSimple coroutine) => _handle.Resume(coroutine);
-
-        #if UNITY_EDITOR
-            
-            private static void OnQuit() {
-                _handle.StopAll();
-                _handle.DisconnectFromLoop();
-            }
-            
-        #endif
         }
     }

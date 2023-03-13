@@ -13,5 +13,8 @@
     "email": "lionext.studio@gmail.com",
     "url": "https://github.com/gestiran"
   },
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "com.lionext.gameloop": "0.1.0"
+  }
 }
