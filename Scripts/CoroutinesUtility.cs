@@ -33,9 +33,9 @@
             }
 
             public static CoroutineSimple StartGlobalCoroutine(IEnumerator enumerator) {
-                CoroutineSimple routine = new CoroutineSimple(enumerator, _handle.Running);
-                _coroutines.Add(routine);
-                return routine;
+                CoroutineSimple coroutine = new CoroutineSimple(enumerator, _handle.Running);
+                _coroutines.Add(coroutine);
+                return coroutine;
             }
 
             public static CoroutineSimple[] StartObjectCoroutine<T>(T root, params IEnumerator[] enumerators) where T : MonoBehaviour {
@@ -65,23 +65,23 @@
                 for (int coroutineId = 0; coroutineId < coroutines.Length; coroutineId++) StopCoroutine(coroutines[coroutineId]);
             }
             
-            public static void StopCoroutine<T>(T routine) where T : CoroutineSimple => routine.ChangeState(_handle.Stopped);
+            public static void StopCoroutine<T>(T coroutine) where T : CoroutineSimple => coroutine.ChangeState(_handle.Stopped);
             
-            public static void Pause(params CoroutineSimple[] routines) {
-                for (int routineId = 0; routineId < _coroutines.Count; routineId++) Pause(_coroutines[routineId]);
+            public static void Pause(params CoroutineSimple[] coroutines) {
+                for (int coroutineId = 0; coroutineId < _coroutines.Count; coroutineId++) Pause(coroutines[coroutineId]);
             }
             
             public static void Pause(CoroutineSimple routine) => routine.ChangeState(_handle.Pause);
 
-            public static void Resume(params CoroutineSimple[] routines) {
-                for (int routineId = 0; routineId < routines.Length; routineId++) _coroutines[routineId].ChangeState(_handle.Running);
+            public static void Resume(params CoroutineSimple[] coroutines) {
+                for (int coroutineId = 0; coroutineId < coroutines.Length; coroutineId++) _coroutines[coroutineId].ChangeState(_handle.Running);
             }
 
             private static void Update() => UpdateRoutines();
 
             private static void UpdateRoutines() {
                 for (int coroutineId = _coroutines.Count - 1; coroutineId >= 0; coroutineId--) {
-                    if (_coroutines[coroutineId].UpdateState()) continue;
+                    if (_coroutines[coroutineId].MoveNext()) continue;
                     StopCoroutine(_coroutines[coroutineId]);
                     _coroutines.RemoveAt(coroutineId);
                 }

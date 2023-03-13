@@ -498,5 +498,5 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _targetTransform: {fileID: 224215324}
-  _framesCount: 300
-  _rotationSpeed: 2
+  _framesCount: 50
+  _rotationSpeed: 4

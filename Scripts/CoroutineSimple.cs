@@ -1,45 +1,40 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using Lionext.Coroutines.Handles;
 
 namespace Lionext.Coroutines {
-    public class CoroutineSimple : IEnumerator, IEquatable<CoroutineSimple> {
+    public class CoroutineSimple : IEnumerator {
         public bool isEmptyStack => _stack.Count == 0;
-        public bool isComplete => _stack.Count == 0 && _enumerator == null;
-        public object Current => _enumerator.Current;
+        public bool isComplete => _stack.Count == 0 && _current == null;
+        public object Current => _current.Current;
         
-        private IEnumerator _enumerator;
-        private CoroutineUpdateProcess _state;
-        
-        private readonly Stack<IEnumerator> _stack;
-        private readonly int _hash;
+        private IEnumerator _current;
+        private Func<CoroutineSimple, bool> _updateState;
 
-        public CoroutineSimple(IEnumerator enumerator, CoroutineUpdateProcess state) {
-            _hash = enumerator.GetHashCode();
-            _enumerator = enumerator;
-            _state = state;
+        private readonly Stack<IEnumerator> _stack;
+
+        public CoroutineSimple(IEnumerator current, Func<CoroutineSimple, bool> updateState) {
             _stack = new Stack<IEnumerator>();
+            _current = current;
+            _updateState = updateState;
         }
 
-        public bool UpdateState() => _state(this);
+        public void ChangeState(Func<CoroutineSimple, bool> state) => _updateState = state;
 
-        public void ChangeState(CoroutineUpdateProcess state) => _state = state;
+        public void PopCurrent() => _current = _stack.Pop();
 
-        public void ChangeEnumerator(IEnumerator enumerator) => _enumerator = enumerator;
+        public void PushCurrent(IEnumerator next) {
+            _stack.Push(_current);
+            _current = next;
+        }
 
-        public IEnumerator Pop() => _stack.Pop();
+        public bool MoveNextCurrent() => _current.MoveNext();
         
-        public void Push() => _stack.Push(_enumerator);
-        
-        public bool MoveNext() => _enumerator.MoveNext();
+        public bool MoveNext() => _updateState(this);
 
-        public void Reset() => _enumerator.Reset();
-
-        public bool Equals(CoroutineSimple other) => other != null && _hash.Equals(other._hash);
-        
-        public override bool Equals(object obj) => obj is CoroutineSimple other && _hash.Equals(other._hash);
-
-        public override int GetHashCode() => _hash;
+        public void Reset() {
+            _stack.Clear();
+            _current = null;
+        }
     }
 }

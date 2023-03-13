@@ -3,16 +3,13 @@
 namespace Lionext.Coroutines.Handles {
     public class CoroutineHandle {
         public bool Running(CoroutineSimple coroutine) {
-            if (!coroutine.MoveNext()) {
+            if (!coroutine.MoveNextCurrent()) {
                 if (coroutine.isEmptyStack) {
-                    coroutine.ChangeEnumerator(null);
+                    coroutine.Reset();
                     return false;
                 }
-                coroutine.ChangeEnumerator(coroutine.Pop());
-            } else if (coroutine.Current is IEnumerator current) {
-                coroutine.Push();
-                coroutine.ChangeEnumerator(current);
-            }
+                coroutine.PopCurrent();
+            } else if (coroutine.Current is IEnumerator current) coroutine.PushCurrent(current);
 
             return true;
         }

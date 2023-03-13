@@ -18,8 +18,11 @@ namespace LionextExample.Coroutines {
         private void Start() {
             //_rotations = CoroutinesUtility.StartCoroutine(RotateUP(), RotateLeft());
 
-            CoroutinesUtility.StartObjectCoroutine(this, Print("Obj"));
-            CoroutinesUtility.StartGlobalCoroutine( Print("All"));
+            //CoroutinesUtility.StartObjectCoroutine(this, Print("Obj"));
+            //CoroutinesUtility.StartGlobalCoroutine( Print("All"));
+
+
+            CoroutinesUtility.StartObjectCoroutine(this, Animation(RotateUP(), RotateLeft()));
         }
 
         private void Update() {
@@ -41,6 +44,17 @@ namespace LionextExample.Coroutines {
                 yield return new WaitRealtime(1f);
                 Debug.LogError(data);
             }
+        }
+
+        private IEnumerator Animation(params IEnumerator[] simple) {
+            while (Application.isPlaying) {
+
+                for (int i = 0; i < simple.Length; i++) {
+                    yield return CoroutinesUtility.StartGlobalCoroutine(simple[i]);
+                }
+                Debug.LogError(0);
+            }
+            Debug.LogError(1);
         }
         
         private IEnumerator RotateUP() {
