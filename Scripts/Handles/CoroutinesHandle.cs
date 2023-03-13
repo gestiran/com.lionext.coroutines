@@ -11,7 +11,7 @@ namespace Lionext.Coroutines.Handles {
 
         public CoroutinesHandle() {
             _coroutines = new List<CoroutineSimple>();
-            _updateSystem = CreateCurrentSystem();
+            _updateSystem = GameLoopUtility.CreateSystem<CoroutinesHandle>(UpdateRoutines);
             ConnectToLoop();
         }
         
@@ -47,19 +47,10 @@ namespace Lionext.Coroutines.Handles {
             }
         }
 
-        public void ConnectToLoop() => GameLoopUtility.ConnectToLoop(_updateSystem);
+        public void ConnectToLoop() => GameLoopUtility.AddLoop(_updateSystem);
 
-        public void DisconnectFromLoop() => GameLoopUtility.DisconnectFromLoop(_updateSystem);
+        public void DisconnectFromLoop() => GameLoopUtility.RemoveLoop(_updateSystem);
 
-        private PlayerLoopSystem CreateCurrentSystem() {
-            PlayerLoopSystem system = new PlayerLoopSystem();
-
-            system.type = typeof(PlayerLoopSystem);
-            system.updateDelegate = UpdateRoutines;
-
-            return system;
-        }
-        
         private bool RunningUpdate(CoroutineSimple coroutine) {
             if (!coroutine.MoveNextCurrent()) {
                 if (coroutine.isEmptyStack) {
